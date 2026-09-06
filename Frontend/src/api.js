@@ -43,6 +43,16 @@ export async function loginUser(username, password) {
   return data;
 }
 
+// -- ASISTENTE GEMINI IA --
+export async function askGemini(prompt, usage) {
+  const res = await fetch(`${API_BASE_URL}/gemini/generate`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ prompt, usage }),
+  });
+  return handleResponse(res);
+}
+
 // -- FASES --
 export async function getPhases() {
   const res = await fetch(`${API_BASE_URL}/phases`, {
