@@ -17,9 +17,13 @@ import {
   AlertCircle,
   RefreshCw,
   Pencil,
-  Trash2
+  Trash2,
+  LogOut,
+  Lock,
+  User
 } from 'lucide-react';
 import { 
+  loginUser,
   getPhases, 
   createPhase, 
   updatePhase, 
@@ -34,15 +38,17 @@ import {
 } from './api';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('auth_token'));
   const [activeTab, setActiveTab] = useState('dashboard');
   const [phases, setPhases] = useState([]);
   const [aiLogs, setAiLogs] = useState([]);
   const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Cargar datos desde la API al montar el componente
+  // Cargar datos desde la API al estar autenticado
   const loadData = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
@@ -56,15 +62,30 @@ export default function App() {
       setResources(resourcesData);
     } catch (err) {
       console.error("Error al cargar datos de la API:", err);
-      setError("No se pudo conectar con el servidor Backend (FastAPI). Verifica que esté en ejecución en http://localhost:8000.");
+      if (err.message.includes("401") || err.message.toLowerCase().includes("no autorizado")) {
+        setIsAuthenticated(false);
+      } else {
+        setError("No se pudo conectar con el servidor Backend (FastAPI). Verifica que esté en ejecución en http://localhost:8000.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [isAuthenticated]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_username');
+    setIsAuthenticated(false);
+    setPhases([]);
+    setAiLogs([]);
+    setResources([]);
+  };
 
   // Manejadores de eventos asíncronos - Fases
   const handleAddPhase = async (phaseData) => {
@@ -141,6 +162,11 @@ export default function App() {
     }
   };
 
+  // Si no está autenticado, renderizar la pantalla de Login
+  if (!isAuthenticated) {
+    return <LoginView onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -205,6 +231,8 @@ export default function App() {
     }
   };
 
+  const username = localStorage.getItem('auth_username') || 'Equipo Alpha';
+
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
       {/* Sidebar (Barra lateral) */}
@@ -224,16 +252,23 @@ export default function App() {
           <NavItem icon={<LinkIcon />} label="Recursos y Enlaces" active={activeTab === 'recursos'} onClick={() => setActiveTab('recursos')} />
         </nav>
 
-        <div className="p-4 border-t border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
-              EQ
+        <div className="p-4 border-t border-slate-200 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0">
+              {username.substring(0, 2).toUpperCase()}
             </div>
-            <div className="text-sm">
-              <p className="font-medium">Equipo Alpha</p>
-              <p className="text-xs text-slate-500">3 Integrantes</p>
+            <div className="text-sm truncate">
+              <p className="font-medium truncate">{username}</p>
+              <p className="text-xs text-slate-500">Sesión Activa</p>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            title="Cerrar Sesión"
+            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </aside>
 
@@ -259,6 +294,97 @@ export default function App() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+// Vista: Pantalla de Login
+function LoginView({ onLoginSuccess }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await loginUser(username, password);
+      onLoginSuccess();
+    } catch (err) {
+      setError(err.message || 'Usuario o contraseña incorrectos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 border border-slate-200">
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600 shadow-sm">
+            <FileText className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800">Herramienta de Trazabilidad</h1>
+          <p className="text-sm text-slate-500 mt-1">Iniciar sesión en el Proyecto de Grado</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm mb-6 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Usuario</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <User className="w-5 h-5" />
+              </div>
+              <input
+                type="text"
+                required
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow"
+                placeholder="Ingresa tu usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Contraseña</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <Lock className="w-5 h-5" />
+              </div>
+              <input
+                type="password"
+                required
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Iniciar Sesión'}
+          </button>
+        </form>
+
+        <div className="mt-8 text-center text-xs text-slate-400 border-t border-slate-100 pt-4">
+          Acceso protegido por credenciales de equipo
+        </div>
+      </div>
     </div>
   );
 }
@@ -645,7 +771,6 @@ function AILogsView({ logs, onAddLog, onUpdateLog, onDeleteLog }) {
                     <option value="ChatGPT">ChatGPT</option>
                     <option value="Claude">Claude</option>
                     <option value="Copilot">Copilot</option>
-                    <option value="DeepSeek">DeepSeek</option>
                     <option value="Otra">Otra</option>
                   </select>
                 </div>

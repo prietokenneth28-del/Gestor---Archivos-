@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
-from routers import phases, ai_logs, resources
+from routers import auth, phases, ai_logs, resources
 
 # Inicializar tablas y datos semilla al arrancar
 init_db()
@@ -26,6 +26,7 @@ app.add_middleware(
 )
 
 # Inclusión de routers
+app.include_router(auth.router)
 app.include_router(phases.router)
 app.include_router(ai_logs.router)
 app.include_router(resources.router)
