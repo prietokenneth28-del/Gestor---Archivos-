@@ -27,20 +27,35 @@ def generate_gemini_response(req: GeminiGenerateRequest, db: Session = Depends(g
     if not api_key:
         raise HTTPException(
             status_code=400, 
-            detail="Falta la clave GEMINI_API_KEY en el servidor Backend. Por favor configúrala en el archivo .env."
+            detail="Falta la clave GEMINI_API_KEY en el servidor Backend. Por favor configúrala en las variables de entorno."
         )
 
     try:
         # Inicializar el cliente oficial de Google GenAI
         client = genai.Client(api_key=api_key)
         
-        # Generar la respuesta del modelo Gemini
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=req.prompt
-        )
+        # Lista de modelos de producción en orden de preferencia
+        models_to_try = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash']
+        response = None
+        last_error = None
 
-        ai_text = response.text if response and response.text else "No se obtuvo respuesta del modelo Gemini."
+        for model_name in models_to_try:
+            try:
+                res = client.models.generate_content(
+                    model=model_name,
+                    contents=req.prompt
+                )
+                if res and res.text:
+                    response = res
+                    break
+            except Exception as err:
+                last_error = err
+                continue
+
+        if not response or not response.text:
+            raise last_error or Exception("No se pudo obtener respuesta con los modelos Gemini disponibles.")
+
+        ai_text = response.text
 
         # Guardar automáticamente en la Bitácora de IA (tabla ai_logs)
         db_log = AILog(
