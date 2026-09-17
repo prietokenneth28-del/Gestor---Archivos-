@@ -89,3 +89,4 @@ def delete_query(query_id: int, db: Session = Depends(get_db)):
     db.delete(q)
     db.commit()
     return {"message": "Ecuación de búsqueda eliminada correctamente", "id": query_id}
+

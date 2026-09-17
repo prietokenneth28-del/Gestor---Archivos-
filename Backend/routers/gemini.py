@@ -34,14 +34,14 @@ def generate_gemini_response(req: GeminiGenerateRequest, db: Session = Depends(g
         # Inicializar el cliente oficial de Google GenAI
         client = genai.Client(api_key=api_key)
         
-        # Lista de modelos de producción en orden de preferencia (Gemini 3.5 en prioridad)
-        models_to_try = ['gemini-3.5-flash', 'gemini-3.5', 'gemini-2.0-flash', 'gemini-1.5-flash']
+        # Lista de modelos de producción en orden de preferencia
+        models_to_try = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.5-flash']
         response = None
         last_error = None
 
         for model_name in models_to_try:
             try:
-                res = client.models.generate_content(
+                res = client.models.generate_conten(
                     model=model_name,
                     contents=req.prompt
                 )
