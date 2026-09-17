@@ -146,3 +146,37 @@ export async function deleteResource(id) {
   });
   return handleResponse(res);
 }
+
+// -- ECUACIONES DE BÚSQUEDA (ADVANCED QUERIES) --
+export async function getQueries() {
+  const res = await fetch(`${API_BASE_URL}/queries`, {
+    headers: getHeaders()
+  });
+  return handleResponse(res);
+}
+
+export async function createQuery(queryData) {
+  const res = await fetch(`${API_BASE_URL}/queries`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(queryData),
+  });
+  return handleResponse(res);
+}
+
+export async function updateQuery(id, queryData) {
+  const res = await fetch(`${API_BASE_URL}/queries/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(queryData),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteQuery(id) {
+  const res = await fetch(`${API_BASE_URL}/queries/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  return handleResponse(res);
+}

@@ -75,3 +75,42 @@ class ResourceResponse(BaseModel):
         populate_by_name = True
         from_attributes = True
 
+
+# -- Esquemas para Ecuaciones de Búsqueda (Advanced Queries) --
+class AdvancedQueryBase(BaseModel):
+    title: str
+    databaseName: str = Field(alias="database_name")
+    queryText: str = Field(alias="query_text")
+    description: Optional[str] = None
+    resultsCount: Optional[int] = Field(default=0, alias="results_count")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+class AdvancedQueryCreate(AdvancedQueryBase):
+    pass
+
+class AdvancedQueryUpdate(BaseModel):
+    title: Optional[str] = None
+    databaseName: Optional[str] = Field(default=None, alias="database_name")
+    queryText: Optional[str] = Field(default=None, alias="query_text")
+    description: Optional[str] = None
+    resultsCount: Optional[int] = Field(default=None, alias="results_count")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+class AdvancedQueryResponse(BaseModel):
+    id: int
+    title: str
+    databaseName: str = Field(alias="database_name")
+    queryText: str = Field(alias="query_text")
+    description: Optional[str] = None
+    resultsCount: Optional[int] = Field(default=0, alias="results_count")
+    date: str = Field(alias="created_date")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True

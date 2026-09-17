@@ -32,3 +32,13 @@ class Resource(Base):
     added_date = Column(String(50), default=lambda: date.today().isoformat())
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class AdvancedQuery(Base):
+    __tablename__ = "ecuaciones_busqueda"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    database_name = Column(String(100), nullable=False)
+    query_text = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
+    results_count = Column(Integer, default=0)
+    created_date = Column(String(50), default=lambda: date.today().isoformat())
+    created_at = Column(DateTime, default=datetime.utcnow)

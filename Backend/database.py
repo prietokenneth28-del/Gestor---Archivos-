@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Phase, AILog, Resource
+from models import Base, Phase, AILog, Resource, AdvancedQuery
 
 # Cargar automáticamente las variables de entorno desde el archivo .env
 load_dotenv()
@@ -86,6 +86,27 @@ def init_db():
                 )
             ]
             db.add_all(initial_resources)
+
+        if db.query(AdvancedQuery).count() == 0:
+            initial_queries = [
+                AdvancedQuery(
+                    title='Búsqueda Principal de Trazabilidad e Inteligencia Artificial',
+                    database_name='Scopus',
+                    query_text='TITLE-ABS-KEY(("traceability" OR "auditability") AND ("artificial intelligence" OR "large language models" OR "generative AI") AND ("academic writing" OR "degree project" OR "thesis"))',
+                    description='Cadena de búsqueda avanzada para la revisión sistemática de literatura sobre herramientas de trazabilidad académica.',
+                    results_count=38,
+                    created_date='2026-09-15'
+                ),
+                AdvancedQuery(
+                    title='Ecuación para Herramientas de Gestión Bibliográfica en IEEE',
+                    database_name='IEEE Xplore',
+                    query_text='("Document Traceability" OR "Academic Integrity") AND ("AI Governance" OR "Generative Tools")',
+                    description='Consulta realizada en IEEE Xplore para identificar marcos teóricos y gobernanza de IA en textos científicos.',
+                    results_count=24,
+                    created_date='2026-09-16'
+                )
+            ]
+            db.add_all(initial_queries)
 
         db.commit()
     except Exception as e:
