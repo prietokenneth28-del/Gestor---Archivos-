@@ -65,15 +65,15 @@ export default function App() {
     setError(null);
     try {
       const [phasesData, logsData, resourcesData, queriesData] = await Promise.all([
-        getPhases(),
-        getAiLogs(),
-        getResources(),
-        getQueries()
+        getPhases().catch(err => { console.error("Error al cargar fases:", err); return []; }),
+        getAiLogs().catch(err => { console.error("Error al cargar bitácora IA:", err); return []; }),
+        getResources().catch(err => { console.error("Error al cargar recursos:", err); return []; }),
+        getQueries().catch(err => { console.error("Error al cargar ecuaciones:", err); return []; })
       ]);
-      setPhases(phasesData);
-      setAiLogs(logsData);
-      setResources(resourcesData);
-      setQueries(queriesData);
+      setPhases(phasesData || []);
+      setAiLogs(logsData || []);
+      setResources(resourcesData || []);
+      setQueries(queriesData || []);
     } catch (err) {
       console.error("Error al cargar datos de la API:", err);
       if (err.message.includes("401") || err.message.toLowerCase().includes("no autorizado")) {
@@ -466,8 +466,8 @@ function NavItem({ icon, label, active, onClick }) {
 }
 
 function DashboardView({ phases, aiLogs, queries }) {
-  const completed = phases.filter(p => p.status === 'completado').length;
-  const progress = phases.length === 0 ? 0 : Math.round((completed / phases.length) * 100);
+  const completed = (phases || []).filter(p => p.status === 'completado').length;
+  const progress = (phases || []).length === 0 ? 0 : Math.round((completed / (phases || []).length) * 100);
 
   return (
     <div className="space-y-6">
@@ -486,16 +486,16 @@ function DashboardView({ phases, aiLogs, queries }) {
           <h3 className="text-sm font-medium text-slate-500">Fases Completadas</h3>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-bold text-slate-800">{completed}</span>
-            <span className="text-sm text-slate-500">de {phases.length}</span>
+            <span className="text-sm text-slate-500">de {(phases || []).length}</span>
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <h3 className="text-sm font-medium text-slate-500">Consultas IA Registradas</h3>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-indigo-600">{aiLogs.length}</span>
+            <span className="text-3xl font-bold text-indigo-600">{(aiLogs || []).length}</span>
           </div>
-          <p className="text-xs text-slate-500 mt-2">Última: {aiLogs[0]?.date || 'Ninguna'}</p>
+          <p className="text-xs text-slate-500 mt-2">Última: {(aiLogs || [])[0]?.date || 'Ninguna'}</p>
         </div>
 
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -572,7 +572,7 @@ function PhasesView({ phases, onAddPhase, onUpdatePhase }) {
         </button>
       </div>
       <div className="divide-y divide-slate-100">
-        {phases.map((phase) => (
+        {(phases || []).map((phase) => (
           <div key={phase.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
             <div className="flex items-center gap-4">
               {phase.status === 'completado' ? (
@@ -587,7 +587,7 @@ function PhasesView({ phases, onAddPhase, onUpdatePhase }) {
                   {phase.title}
                 </h4>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  Estado: {phase.status.replace('_', ' ')} • Fecha: {phase.date}
+                  Estado: {phase.status ? phase.status.replace('_', ' ') : 'pendiente'} • Fecha: {phase.date}
                 </p>
               </div>
             </div>
@@ -599,7 +599,7 @@ function PhasesView({ phases, onAddPhase, onUpdatePhase }) {
             </button>
           </div>
         ))}
-        {phases.length === 0 && (
+        {(phases || []).length === 0 && (
           <div className="p-8 text-center text-slate-500">
             No hay fases registradas. ¡Añade tu primera fase del proyecto!
           </div>
@@ -804,7 +804,7 @@ function AILogsView({ logs, onAddLog, onGeminiQuery, onUpdateLog, onDeleteLog })
       </div>
 
       <div className="space-y-6">
-        {logs.map((log) => (
+        {(logs || []).map((log) => (
           <div key={log.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative group">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-2">
@@ -853,7 +853,7 @@ function AILogsView({ logs, onAddLog, onGeminiQuery, onUpdateLog, onDeleteLog })
             </div>
           </div>
         ))}
-        {logs.length === 0 && (
+        {(logs || []).length === 0 && (
           <div className="p-8 text-center text-slate-500 border border-dashed border-slate-300 rounded-xl bg-slate-50/50">
             No hay registros de IA guardados. ¡Consulta a Gemini en vivo o añade tu primer registro manual!
           </div>
@@ -1079,7 +1079,7 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
     setFormData({
       id: q.id,
       title: q.title,
-      databaseName: q.databaseName,
+      databaseName: q.databaseName || 'Scopus',
       queryText: q.queryText,
       description: q.description || '',
       resultsCount: q.resultsCount || 0
@@ -1088,6 +1088,7 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
   };
 
   const handleCopy = (id, text) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2500);
@@ -1130,7 +1131,7 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
   };
 
   const getDbBadgeClass = (dbName) => {
-    switch (dbName.toLowerCase()) {
+    switch ((dbName || '').toLowerCase()) {
       case 'scopus': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'web of science': return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'ieee xplore': return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -1139,6 +1140,8 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
       default: return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
+
+  const safeQueries = queries || [];
 
   return (
     <div className="space-y-6">
@@ -1157,12 +1160,12 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
       </div>
 
       <div className="space-y-6">
-        {queries.map((q) => (
+        {safeQueries.map((q) => (
           <div key={q.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex justify-between items-start gap-3">
               <div className="flex items-center gap-3">
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getDbBadgeClass(q.databaseName)}`}>
-                  {q.databaseName}
+                  {q.databaseName || 'Scopus'}
                 </span>
                 <h4 className="font-semibold text-slate-800 text-base">{q.title}</h4>
               </div>
@@ -1223,14 +1226,14 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
               <p className="text-slate-600 font-medium">{q.description}</p>
               <div className="flex items-center gap-3">
                 <span className="bg-slate-100 px-2.5 py-1 rounded-md text-slate-700 font-semibold">
-                  📊 {q.resultsCount} resultados
+                  📊 {q.resultsCount || 0} resultados
                 </span>
                 <span>Registrado: {q.date}</span>
               </div>
             </div>
           </div>
         ))}
-        {queries.length === 0 && (
+        {safeQueries.length === 0 && (
           <div className="p-8 text-center text-slate-500 border border-dashed border-slate-300 rounded-xl bg-slate-50/50">
             No hay ecuaciones de búsqueda guardadas. ¡Añade tu primera cadena de búsqueda para Scopus!
           </div>
@@ -1401,10 +1404,10 @@ function ResourcesView({ resources, onAddResource, onUpdateResource, onDeleteRes
   };
 
   const getIconForType = (type) => {
-    switch (type) {
-      case 'Scholar': return <BookOpen className="w-5 h-5 text-blue-500" />;
-      case 'Drive': return <Folder className="w-5 h-5 text-emerald-500" />;
-      case 'PDF': return <File className="w-5 h-5 text-red-500" />;
+    switch ((type || '').toLowerCase()) {
+      case 'scholar': return <BookOpen className="w-5 h-5 text-blue-500" />;
+      case 'drive': return <Folder className="w-5 h-5 text-emerald-500" />;
+      case 'pdf': return <File className="w-5 h-5 text-red-500" />;
       default: return <ExternalLink className="w-5 h-5 text-slate-500" />;
     }
   };
@@ -1426,7 +1429,7 @@ function ResourcesView({ resources, onAddResource, onUpdateResource, onDeleteRes
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {resources.map((resource) => (
+        {(resources || []).map((resource) => (
           <div key={resource.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
             <div>
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -1473,7 +1476,7 @@ function ResourcesView({ resources, onAddResource, onUpdateResource, onDeleteRes
             </div>
           </div>
         ))}
-        {resources.length === 0 && (
+        {(resources || []).length === 0 && (
           <div className="col-span-full p-8 text-center text-slate-500 border border-dashed border-slate-300 rounded-xl bg-slate-50/50">
             No hay recursos registrados. ¡Añade tu primer enlace bibliográfico!
           </div>
