@@ -79,38 +79,26 @@ class ResourceResponse(BaseModel):
 # -- Esquemas para Ecuaciones de Búsqueda (Advanced Queries) --
 class AdvancedQueryBase(BaseModel):
     title: str
-    databaseName: str = Field(alias="database_name")
-    queryText: str = Field(alias="query_text")
+    databaseName: str
+    queryText: str
     description: Optional[str] = None
-    resultsCount: Optional[int] = Field(default=0, alias="results_count")
-
-    class Config:
-        populate_by_name = True
-        from_attributes = True
+    resultsCount: Optional[int] = 0
 
 class AdvancedQueryCreate(AdvancedQueryBase):
     pass
 
 class AdvancedQueryUpdate(BaseModel):
     title: Optional[str] = None
-    databaseName: Optional[str] = Field(default=None, alias="database_name")
-    queryText: Optional[str] = Field(default=None, alias="query_text")
+    databaseName: Optional[str] = None
+    queryText: Optional[str] = None
     description: Optional[str] = None
-    resultsCount: Optional[int] = Field(default=None, alias="results_count")
-
-    class Config:
-        populate_by_name = True
-        from_attributes = True
+    resultsCount: Optional[int] = None
 
 class AdvancedQueryResponse(BaseModel):
     id: int
     title: str
-    databaseName: str = Field(alias="database_name")
-    queryText: str = Field(alias="query_text")
+    databaseName: str
+    queryText: str
     description: Optional[str] = None
-    resultsCount: Optional[int] = Field(default=0, alias="results_count")
-    date: str = Field(alias="created_date")
-
-    class Config:
-        populate_by_name = True
-        from_attributes = True
+    resultsCount: Optional[int] = 0
+    date: str

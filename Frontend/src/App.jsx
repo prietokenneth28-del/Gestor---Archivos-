@@ -1078,11 +1078,11 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
     setModalMode('edit');
     setFormData({
       id: q.id,
-      title: q.title,
-      databaseName: q.databaseName || 'Scopus',
-      queryText: q.queryText,
+      title: q.title || '',
+      databaseName: q.databaseName || q.database_name || 'Scopus',
+      queryText: q.queryText || q.query_text || '',
       description: q.description || '',
-      resultsCount: q.resultsCount || 0
+      resultsCount: q.resultsCount !== undefined ? q.resultsCount : (q.results_count !== undefined ? q.results_count : 0)
     });
     setIsModalOpen(true);
   };
@@ -1160,79 +1160,86 @@ function QueriesView({ queries, onAddQuery, onUpdateQuery, onDeleteQuery }) {
       </div>
 
       <div className="space-y-6">
-        {safeQueries.map((q) => (
-          <div key={q.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex justify-between items-start gap-3">
-              <div className="flex items-center gap-3">
-                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getDbBadgeClass(q.databaseName)}`}>
-                  {q.databaseName || 'Scopus'}
-                </span>
-                <h4 className="font-semibold text-slate-800 text-base">{q.title}</h4>
+        {safeQueries.map((q) => {
+          const dbName = q.databaseName || q.database_name || 'Scopus';
+          const text = q.queryText || q.query_text || '';
+          const count = q.resultsCount !== undefined ? q.resultsCount : (q.results_count !== undefined ? q.results_count : 0);
+          const qDate = q.date || q.created_date || '-';
+
+          return (
+            <div key={q.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex items-center gap-3">
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getDbBadgeClass(dbName)}`}>
+                    {dbName}
+                  </span>
+                  <h4 className="font-semibold text-slate-800 text-base">{q.title}</h4>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => openEditModal(q)}
+                    title="Editar ecuación"
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(q.id)}
+                    disabled={deletingId === q.id}
+                    title="Eliminar ecuación"
+                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    {deletingId === q.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => openEditModal(q)}
-                  title="Editar ecuación"
-                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(q.id)}
-                  disabled={deletingId === q.id}
-                  title="Eliminar ecuación"
-                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  {deletingId === q.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-red-600" />
-                  ) : (
-                    <Trash2 className="w-4 h-4" />
-                  )}
-                </button>
+              {/* Caja de Código para la Sintaxis con Botón Copiar */}
+              <div className="bg-slate-900 text-slate-100 font-mono text-xs p-4 rounded-xl relative group border border-slate-800 overflow-x-auto">
+                <div className="flex justify-between items-start gap-4">
+                  <pre className="whitespace-pre-wrap break-words leading-relaxed font-mono flex-1">
+                    {text}
+                  </pre>
+                  <button
+                    onClick={() => handleCopy(q.id, text)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 shadow-sm ${
+                      copiedId === q.id 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                    }`}
+                  >
+                    {copiedId === q.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>¡Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copiar Ecuación</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Caja de Código para la Sintaxis con Botón Copiar */}
-            <div className="bg-slate-900 text-slate-100 font-mono text-xs p-4 rounded-xl relative group border border-slate-800 overflow-x-auto">
-              <div className="flex justify-between items-start gap-4">
-                <pre className="whitespace-pre-wrap break-words leading-relaxed font-mono flex-1">
-                  {q.queryText}
-                </pre>
-                <button
-                  onClick={() => handleCopy(q.id, q.queryText)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 shadow-sm ${
-                    copiedId === q.id 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
-                  }`}
-                >
-                  {copiedId === q.id ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>¡Copiado!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copiar Ecuación</span>
-                    </>
-                  )}
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+                <p className="text-slate-600 font-medium">{q.description}</p>
+                <div className="flex items-center gap-3">
+                  <span className="bg-slate-100 px-2.5 py-1 rounded-md text-slate-700 font-semibold">
+                    📊 {count} resultados
+                  </span>
+                  <span>Registrado: {qDate}</span>
+                </div>
               </div>
             </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
-              <p className="text-slate-600 font-medium">{q.description}</p>
-              <div className="flex items-center gap-3">
-                <span className="bg-slate-100 px-2.5 py-1 rounded-md text-slate-700 font-semibold">
-                  📊 {q.resultsCount || 0} resultados
-                </span>
-                <span>Registrado: {q.date}</span>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
         {safeQueries.length === 0 && (
           <div className="p-8 text-center text-slate-500 border border-dashed border-slate-300 rounded-xl bg-slate-50/50">
             No hay ecuaciones de búsqueda guardadas. ¡Añade tu primera cadena de búsqueda para Scopus!
