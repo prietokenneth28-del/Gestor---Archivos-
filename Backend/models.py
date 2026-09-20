@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, date
 
 Base = declarative_base()
@@ -42,3 +42,32 @@ class AdvancedQuery(Base):
     results_count = Column(Integer, default=0)
     created_date = Column(String(50), default=lambda: date.today().isoformat())
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class Citation(Base):
+    __tablename__ = "citaciones"
+    id = Column(Integer, primary_key=True, index=True)
+    entry_type = Column(String(50), default="article")
+    cite_key = Column(String(100), nullable=True)
+    authors = Column(Text, nullable=True)
+    title = Column(Text, nullable=False)
+    year = Column(String(50), nullable=True)
+    publication = Column(Text, nullable=True)
+    volume = Column(String(50), nullable=True)
+    issue = Column(String(50), nullable=True)
+    pages = Column(String(50), nullable=True)
+    publisher = Column(String(255), nullable=True)
+    doi = Column(String(255), nullable=True, index=True)
+    url = Column(Text, nullable=True)
+    
+    source_db = Column(String(100), default="Otro")
+    query_id = Column(Integer, ForeignKey("ecuaciones_busqueda.id", ondelete="SET NULL"), nullable=True)
+    query = relationship("AdvancedQuery", backref="citaciones")
+    
+    section = Column(String(255), default="Marco Teórico")
+    notes = Column(Text, nullable=True)
+    quotes = Column(Text, nullable=True)
+    
+    ieee_number = Column(Integer, nullable=True)
+    created_date = Column(String(50), default=lambda: date.today().isoformat())
+    created_at = Column(DateTime, default=datetime.utcnow)
+

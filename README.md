@@ -195,3 +195,4 @@ El proyecto incluye la plantilla oficial **`render.yaml`** (Blueprint) en la ra�
 ## 📜 Licencia
 
 Desarrollado para el proyecto de grado del programa de Ingeniería de Sistemas - **Universidad Distrital Francisco José de Caldas**.
+

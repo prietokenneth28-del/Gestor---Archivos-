@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
-from routers import auth, phases, ai_logs, resources, gemini, queries
+from routers import auth, phases, ai_logs, resources, gemini, queries, citations
 
 # Inicializar tablas y datos semilla al arrancar
 init_db()
@@ -32,6 +32,8 @@ app.include_router(ai_logs.router)
 app.include_router(resources.router)
 app.include_router(gemini.router)
 app.include_router(queries.router)
+app.include_router(citations.router)
+
 
 @app.get("/")
 def read_root():

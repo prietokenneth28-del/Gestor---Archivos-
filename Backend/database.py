@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Phase, AILog, Resource, AdvancedQuery
+from models import Base, Phase, AILog, Resource, AdvancedQuery, Citation
 
 # Cargar automáticamente las variables de entorno desde el archivo .env
 load_dotenv()
@@ -93,7 +93,7 @@ def init_db():
                     title='Búsqueda Principal de Trazabilidad e Inteligencia Artificial',
                     database_name='Scopus',
                     query_text='TITLE-ABS-KEY(("traceability" OR "auditability") AND ("artificial intelligence" OR "large language models" OR "generative AI") AND ("academic writing" OR "degree project" OR "thesis"))',
-                    description='Cadena de búsqueda avanzada para la revisión sistemática de literatura sobre herramientas de trazabilidad académica.',
+                    description='Cadena de búsqueda avanzada para la revisión systematic de literatura sobre herramientas de trazabilidad académica.',
                     results_count=38,
                     created_date='2026-09-15'
                 ),
@@ -108,9 +108,53 @@ def init_db():
             ]
             db.add_all(initial_queries)
 
+        if db.query(Citation).count() == 0:
+            initial_citations = [
+                Citation(
+                    entry_type="article",
+                    cite_key="Smith2025Traceability",
+                    authors="J. Smith y A. Johnson",
+                    title="Automated Requirement Traceability using Artificial Intelligence in Software Projects",
+                    year="2025",
+                    publication="IEEE Transactions on Software Engineering",
+                    volume="51",
+                    issue="3",
+                    pages="450-465",
+                    doi="10.1109/TSE.2025.1234567",
+                    url="https://doi.org/10.1109/TSE.2025.1234567",
+                    source_db="IEEE Xplore",
+                    query_id=1,
+                    section="Marco Teórico",
+                    notes="Proporciona el modelo conceptual clave sobre cómo la IA apoya la trazabilidad documental.",
+                    quotes="La trazabilidad automatizada reduce en un 40% los errores en la documentación de proyectos complejos. (p. 455)",
+                    ieee_number=1,
+                    created_date="2026-09-17"
+                ),
+                Citation(
+                    entry_type="inproceedings",
+                    cite_key="Gomez2024Bibliographic",
+                    authors="C. Gomez, R. Martinez y L. Lopez",
+                    title="Comparative Analysis of Academic Reference Management Tools for Engineering Students",
+                    year="2024",
+                    publication="Proceedings of the 2024 International Conference on Computer Science Education",
+                    pages="112-118",
+                    publisher="ACM",
+                    doi="10.1145/3600000.3600015",
+                    source_db="Scopus",
+                    query_id=2,
+                    section="Estado del Arte",
+                    notes="Analiza la usabilidad de gestores como Zotero y Mendeley en comparación con herramientas personalizadas.",
+                    quotes="El 78% de los estudiantes prefiere integraciones directas que eviten el copiado manual de citas. (p. 115)",
+                    ieee_number=2,
+                    created_date="2026-09-18"
+                )
+            ]
+            db.add_all(initial_citations)
+
         db.commit()
     except Exception as e:
         db.rollback()
         print(f"Error al inicializar datos semilla: {e}")
     finally:
         db.close()
+

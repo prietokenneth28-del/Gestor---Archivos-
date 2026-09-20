@@ -180,3 +180,62 @@ export async function deleteQuery(id) {
   });
   return handleResponse(res);
 }
+
+// -- DOCUMENTOS A CITAR (CITACIONES IEEE) --
+export async function getCitations() {
+  const res = await fetch(`${API_BASE_URL}/citations`, {
+    headers: getHeaders()
+  });
+  return handleResponse(res);
+}
+
+export async function createCitation(citationData) {
+  const res = await fetch(`${API_BASE_URL}/citations`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(citationData),
+  });
+  return handleResponse(res);
+}
+
+export async function updateCitation(id, citationData) {
+  const res = await fetch(`${API_BASE_URL}/citations/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(citationData),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteCitation(id) {
+  const res = await fetch(`${API_BASE_URL}/citations/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  return handleResponse(res);
+}
+
+export async function importCitationsPreview(rawText, options = {}) {
+  const res = await fetch(`${API_BASE_URL}/citations/import`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      rawText,
+      format: options.format || 'auto',
+      defaultSourceDb: options.defaultSourceDb || 'Otro',
+      defaultQueryId: options.defaultQueryId ? parseInt(options.defaultQueryId, 10) : null,
+      defaultSection: options.defaultSection || 'Marco Teórico'
+    }),
+  });
+  return handleResponse(res);
+}
+
+export async function saveBatchCitations(items) {
+  const res = await fetch(`${API_BASE_URL}/citations/batch`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ items }),
+  });
+  return handleResponse(res);
+}
+
