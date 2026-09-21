@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.db
+.venv/
+venv/
+
+# Node / build output
+node_modules/
+Frontend/dist/
+
+# Entorno
+.env
+.env.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
