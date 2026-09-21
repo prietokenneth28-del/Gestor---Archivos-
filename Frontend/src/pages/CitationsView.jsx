@@ -114,7 +114,7 @@ export default function CitationsView({ citations, queries, onAddCitation, onUpd
                   <th className="py-3 px-4 min-w-[320px]">Referencia IEEE Formateada</th>
                   <th className="py-3 px-4">Origen / Ecuación</th>
                   <th className="py-3 px-4">Sección del Proyecto</th>
-                  <th className="py-3 px-4 min-w-[200px]">Notas / Citas Textuales</th>
+                  <th className="py-3 px-4 min-w-[360px]">Notas / Citas Textuales</th>
                   <th className="py-3 px-4 text-right">Acciones</th>
                 </tr>
               </thead>

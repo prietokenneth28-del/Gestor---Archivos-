@@ -355,7 +355,7 @@ export default function App() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-5xl mx-auto">
+          <div className={`mx-auto ${activeTab === 'citaciones' ? 'max-w-full' : 'max-w-5xl'}`}>
             {renderContent()}
           </div>
         </div>
