@@ -4,10 +4,12 @@ from typing import List
 from database import get_db
 from models import Resource
 from schemas import ResourceCreate, ResourceResponse
+from routers.auth import verify_token
 
 router = APIRouter(
     prefix="/api/resources",
-    tags=["Recursos y Enlaces"]
+    tags=["Recursos y Enlaces"],
+    dependencies=[Depends(verify_token)]
 )
 
 @router.get("", response_model=List[ResourceResponse])

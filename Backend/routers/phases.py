@@ -4,10 +4,12 @@ from typing import List
 from database import get_db
 from models import Phase
 from schemas import PhaseCreate, PhaseResponse
+from routers.auth import verify_token
 
 router = APIRouter(
     prefix="/api/phases",
-    tags=["Fases del Proyecto"]
+    tags=["Fases del Proyecto"],
+    dependencies=[Depends(verify_token)]
 )
 
 @router.get("", response_model=List[PhaseResponse])

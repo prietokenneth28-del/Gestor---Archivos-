@@ -7,13 +7,14 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Citation, AdvancedQuery
 from schemas import (
-    CitationCreate, 
-    CitationUpdate, 
-    CitationResponse, 
+    CitationCreate,
+    CitationUpdate,
+    CitationResponse,
     CitationImportTextRequest,
     CitationPreviewItem,
     CitationBatchSaveRequest
 )
+from routers.auth import verify_token
 
 try:
     import bibtexparser
@@ -27,7 +28,8 @@ except ImportError:
 
 router = APIRouter(
     prefix="/api/citations",
-    tags=["Documentos a Citar (IEEE)"]
+    tags=["Documentos a Citar (IEEE)"],
+    dependencies=[Depends(verify_token)]
 )
 
 def format_author_name(author_str: str) -> str:
@@ -492,3 +494,4 @@ def batch_save_citations(req: CitationBatchSaveRequest, db: Session = Depends(ge
     query_map = {q.id: q.title for q in queries}
     
     return [format_citation_response(c, query_map) for c in new_records]
+

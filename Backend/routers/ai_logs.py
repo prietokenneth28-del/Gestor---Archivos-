@@ -4,10 +4,12 @@ from typing import List
 from database import get_db
 from models import AILog
 from schemas import AILogCreate, AILogResponse
+from routers.auth import verify_token
 
 router = APIRouter(
     prefix="/api/ai-logs",
-    tags=["Bitácora de IA"]
+    tags=["Bitácora de IA"],
+    dependencies=[Depends(verify_token)]
 )
 
 @router.get("", response_model=List[AILogResponse])

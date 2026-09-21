@@ -7,10 +7,12 @@ from google import genai
 from database import get_db
 from models import AILog
 from schemas import AILogResponse
+from routers.auth import verify_token
 
 router = APIRouter(
     prefix="/api/gemini",
-    tags=["Asistente Gemini IA"]
+    tags=["Asistente Gemini IA"],
+    dependencies=[Depends(verify_token)]
 )
 
 class GeminiGenerateRequest(BaseModel):
@@ -41,7 +43,7 @@ def generate_gemini_response(req: GeminiGenerateRequest, db: Session = Depends(g
 
         for model_name in models_to_try:
             try:
-                res = client.models.generate_conten(
+                res = client.models.generate_content(
                     model=model_name,
                     contents=req.prompt
                 )

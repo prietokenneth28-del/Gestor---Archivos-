@@ -1,5 +1,5 @@
 import os
-import secrets
+import hashlib
 from fastapi import APIRouter, HTTPException, Depends, Header
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -14,8 +14,11 @@ router = APIRouter(
 AUTH_USERNAME = os.getenv("AUTH_USERNAME", "admin")
 AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "trazabilidad2026")
 
-# Token secreto fijo derivado de las credenciales para la sesión
-SECRET_TOKEN = f"token_{secrets.token_hex(16)}"
+# Token derivado deterministicamente de AUTH_SECRET_KEY (o de las credenciales
+# como fallback) para que sea el mismo en todos los workers/procesos y
+# sobreviva a reinicios del servidor, en vez de generarse al azar por proceso.
+_secret_seed = os.getenv("AUTH_SECRET_KEY") or f"{AUTH_USERNAME}:{AUTH_PASSWORD}"
+SECRET_TOKEN = f"token_{hashlib.sha256(_secret_seed.encode()).hexdigest()}"
 
 class LoginRequest(BaseModel):
     username: str

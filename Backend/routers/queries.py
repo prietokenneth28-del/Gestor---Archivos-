@@ -4,10 +4,12 @@ from typing import List
 from database import get_db
 from models import AdvancedQuery
 from schemas import AdvancedQueryCreate, AdvancedQueryUpdate, AdvancedQueryResponse
+from routers.auth import verify_token
 
 router = APIRouter(
     prefix="/api/queries",
-    tags=["Ecuaciones de Búsqueda"]
+    tags=["Ecuaciones de Búsqueda"],
+    dependencies=[Depends(verify_token)]
 )
 
 @router.get("", response_model=List[AdvancedQueryResponse])

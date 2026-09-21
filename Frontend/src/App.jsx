@@ -115,6 +115,7 @@ export default function App() {
     setAiLogs([]);
     setResources([]);
     setQueries([]);
+    setCitations([]);
   };
 
   // Manejadores de eventos asíncronos - Fases
